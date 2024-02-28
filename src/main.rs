@@ -4,27 +4,87 @@ use rustemon::Follow;
 
 #[tokio::main(flavor = "current_thread")] // unsure what this does
 async fn main() {
-    load_pokemon(99).await; // must be ended by .await otherwise nothing happens
+    load_pokemon(350).await; // must be ended by .await otherwise nothing happens
 }
 
 async fn load_pokemon(number: i64) { // this should return a Pokemon struct
     // this reads from the pokéAPI because i'm a lazy cunt 
     let rustemon_client = RustemonClient::default();
-    let pokemon = pokemon::get_by_id(number, &rustemon_client).await;
 
-    let species = pokemon.unwrap().species;
-    println!("{:#?}", species);
+    let pokemon_data = pokemon::get_by_id(number, &rustemon_client).await;
+
+    let species = &pokemon_data.as_ref().unwrap().species.name;
+    let types =  &pokemon_data.as_ref().unwrap().types;
+    let stats = &pokemon_data.as_ref().unwrap().stats;
+
+    let mut pokemon_obj; // need to declare this out here otherwise it disappears at the end of the
+    // if statement
+    if types.len() > 1 { // TODO: add abilities you dumbass
+    // it would be cooler if it could be done within the struct declaratio but oh well
+        pokemon_obj = PokemonData {
+            name: String::from(species),
+            type1: types[0].type_.name.clone(), // must be cloned because it can't be copied - why?
+            type2: types[1].type_.name.clone(), // otherwise compiler shits itself
+            ability: "".to_string(),
+
+            hp: stats[0].base_stat.clone(),
+            att: stats[1].base_stat.clone(),
+            def: stats[2].base_stat.clone(),
+            spa: stats[3].base_stat.clone(),
+            spd: stats[4].base_stat.clone(),
+            spe: stats[5].base_stat.clone(),
+        };
+    } else {
+        pokemon_obj = PokemonData {
+            name: String::from(species),
+            type1: types[0].type_.name.clone(),
+            type2: "".to_string(),
+            ability: "".to_string(),
+
+            hp: stats[0].base_stat.clone(),
+            att: stats[1].base_stat.clone(),
+            def: stats[2].base_stat.clone(),
+            spa: stats[3].base_stat.clone(),
+            spd: stats[4].base_stat.clone(),
+            spe: stats[5].base_stat.clone(),
+        };
+    }
+
+    // parsing stuff
+    pokemon_obj.name = remove_quotes(pokemon_obj.name);
+    
+
+    println!("{:#?}", pokemon_obj.name);
+    println!("{:#?}", pokemon_obj.type1);
+    println!("{:#?}", pokemon_obj.hp);
+}
+
+fn remove_quotes(mut string: String) -> String {
+    string = string.trim_end_matches("\"").to_string();
+    string = string.trim_start_matches("\"").to_string();
+
+    // return!!
+    string
 }
 
 // STRUCTS  
 
 #[derive(Debug)]
 struct PokemonData {
-    number: i32,
+    name: String,
     type1: String,
     type2: String,
     ability: String,
-    nature: i8,
+
+    hp: i64,
+    att: i64,
+    def: i64,
+    spa: i64,
+    spd: i64,
+    spe: i64,
+
+    // all natures will be assumed as neutral. given it's just an added hassle and i have no
+    // intention of adding any of it
 }
 
 #[derive(Debug)]
@@ -47,6 +107,7 @@ struct BattlingPokemon { // this is an instance of a pokémon in battle
     status: String,
 
     is_active: bool,
+    item: String,
 
     // TODO: add stuff like stat boosts and volatile statuses
 }
