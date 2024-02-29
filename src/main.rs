@@ -4,10 +4,15 @@ use rustemon::Follow;
 
 #[tokio::main(flavor = "current_thread")] // unsure what this does
 async fn main() {
-    load_pokemon(350).await; // must be ended by .await otherwise nothing happens
+    let mut user_team: Vec<PokemonData> = Vec::new();
+    let mut foe_team: Vec<PokemonData> = Vec::new();
+
+    user_team.push( load_pokemon(681).await );// must be ended by .await otherwise nothing happens
+    user_team.push( load_pokemon(609).await );// must be ended by .await otherwise nothing happens
+    user_team.push( load_pokemon(94).await );// must be ended by .await otherwise nothing happens
 }
 
-async fn load_pokemon(number: i64) { // this should return a Pokemon struct
+async fn load_pokemon(number: i64) -> PokemonData { // this should return a Pokemon struct
     // this reads from the pokéAPI because i'm a lazy cunt 
     let rustemon_client = RustemonClient::default();
 
@@ -54,9 +59,8 @@ async fn load_pokemon(number: i64) { // this should return a Pokemon struct
     pokemon_obj.name = remove_quotes(pokemon_obj.name);
     
 
-    println!("{:#?}", pokemon_obj.name);
-    println!("{:#?}", pokemon_obj.type1);
-    println!("{:#?}", pokemon_obj.hp);
+    println!("Loaded Pokémon {:#?} successfully!", pokemon_obj.name);
+    pokemon_obj
 }
 
 fn remove_quotes(mut string: String) -> String {
