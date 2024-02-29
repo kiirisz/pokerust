@@ -7,9 +7,35 @@ async fn main() {
     let mut user_team: Vec<PokemonData> = Vec::new();
     let mut foe_team: Vec<PokemonData> = Vec::new();
 
-    user_team.push( load_pokemon(681).await );// must be ended by .await otherwise nothing happens
-    user_team.push( load_pokemon(609).await );// must be ended by .await otherwise nothing happens
-    user_team.push( load_pokemon(94).await );// must be ended by .await otherwise nothing happens
+    println!("Your team:");
+    user_team.push( load_pokemon(681).await );
+    user_team.push( load_pokemon(609).await ); 
+    user_team.push( load_pokemon(94).await );
+
+    println!("Enemy team:");
+    foe_team.push( load_pokemon(620).await );
+    foe_team.push( load_pokemon(766).await );
+    foe_team.push( load_pokemon(903).await );
+
+    // lv100 will be assumed for my sake
+    load_battle_team(user_team);
+}
+
+async fn load_battle_team(team: Vec<PokemonData>) -> Vec<BattlingPokemon> {
+    let mut battle_team: Vec<BattlingPokemon> = Vec::new();
+
+    for i in 0..team.len() {
+        // HP = (0.01(2*Base+IV+(0.25*EV))*Level)+Level+10
+        battle_team[i].hp = (0.01*(2*team[i].hp as f64+31*100)+100+10).floor();
+
+        battle_team[i].att = (0.01*(2*team[i].att+31)*100+5).floor();
+        battle_team[i].def = (0.01*(2*team[i].def+31)*100+5).floor();
+        battle_team[i].spa = (0.01*(2*team[i].spa+31)*100+5).floor();
+        battle_team[i].spd = (0.01*(2*team[i].spd+31)*100+5).floor();
+        battle_team[i].spe = (0.01*(2*team[i].spe+31)*100+5).floor();
+    }
+
+    battle_team
 }
 
 async fn load_pokemon(number: i64) -> PokemonData { // this should return a Pokemon struct
@@ -93,11 +119,14 @@ struct PokemonData {
 
 #[derive(Debug)]
 struct BattlingPokemon { // this is an instance of a pokémon in battle
-    // immutable stuff that is nevertheless referenced
-    number: i32,
 
     // its current stats
-    hp: i32,
+    hp: f32,
+    att: f32,
+    def: f32,
+    spa: f32,
+    spd: f32,
+    spe: f32,
 
     move1: String,
     move1_pp: i32,
